@@ -1,0 +1,440 @@
+from tkinter import *
+from tkinter import ttk
+import tkinter as tk, tkinter.ttk as ttk, os, shutil, paramiko, threading, eyed3, socket
+from PIL import Image, ImageTk
+from tkinter import filedialog as fd
+from datetime import date
+from winreg import *
+from mutagen.mp3 import MP3
+from mutagen.id3 import ID3, TIT2, TPE1, TPE2, TALB, TCON, TDRC, COMM, WXXX, TCOM, TPUB, TRCK, TXXX, TCOP
+import tkinter.messagebox as mb
+import py_win_keyboard_layout
+import time
+import sys
+import tkinter as tk
+from tkinter import messagebox
+from webdriver_manager.firefox import GeckoDriverManager
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.common.by import By
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
+
+
+# Раскладка клавиатуры
+py_win_keyboard_layout.change_foreground_window_keyboard_layout(0x04090409)
+
+tags = ["Еврейское мировоззрение", "http://toldot.com", "Толдот Йешурун", "Toldot Yeshurun, HaKisufim St 17, Jerusalem 9123101, Israel"]
+lesson_genre = ["Талмуд", "Мировоззрение", "Еврейские законы", "Пиркей Авот", "Еврейская история", "ТАНАХ", "Еврейская семья", 
+                "Недельная глава", "Еврейские праздники", "Рав Ицхак Зильбер", "Проблемы и вопросы", "Суббота", 
+                "Тора и психология", "Вебинары", "Изучение иврита", "Женские уроки"]
+
+# Папка Загрузки
+# path2 = r'C:\most129\\'
+with OpenKey(HKEY_CURRENT_USER, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders') as key: Downloads = QueryValueEx(key, '{374DE290-123F-4565-9164-39C4925E467B}')[0]
+path2 = Downloads + r'\\'
+
+match socket.gethostname():
+    case 'HONAN':
+        path1 = r'D:\DATA5\Python\16869.ico'
+        path3 = r'D:\DATA5\ZOOM\\'
+        path4 = r'D:\DATA5\Python\\'
+        profile_path = r'C:\Users\Хонан Либерман\AppData\Roaming\Mozilla\Firefox\Profiles\x7e2dt5w.default-release'
+    case 'most129':
+        path1 = r'E:\DATA2\Python\16869.ico'
+        path3 = r'E:\DATA2\ZOOM\\'
+        path4 = r'E:\DATA2\Python\\'
+        profile_path = r'C:\Users\HONAN\AppData\Roaming\Mozilla\Firefox\Profiles\p9znfw8s.default'
+    case _:
+        mb.showerror("Не известный компьютер", socket.gethostname())
+        sys.exit()
+       
+class App(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        
+        self.canvas = Canvas(height = 1000, width = 1000)
+        self.canvas.pack()
+        self.test = PhotoImage(file='logo-ZOOM.png')
+        self.testImg = self.canvas.create_image(780, 160, anchor = NW, image = self.test)
+        
+        self.title('Интегрированная среда создания аудио файлов ZOOM')
+        self.geometry('1000x500+600+300')
+        self.iconbitmap(path1)
+        
+        self.option_add("*tearOff", FALSE)
+        self.debug_mode = False
+        
+        def edit_click_0001():
+            messagebox.showinfo("ZOOM", "Нажата опция Создать")
+            
+        def edit_click_0002():
+            sys.exit()
+        
+        def edit_click_0003():
+            sys.exit()
+        
+        def edit_click_0004():
+            if self.debug_mode:
+                self.label_0001.destroy()
+                self.debug_mode = False
+            
+        def edit_click_0005():
+            self.label_0001 = self.label = tk.Label(self, text="Режим отладки", background = 'YellowGreen')
+            self.label_0001.place(relx=.05, rely=.008)
+            self.debug_mode = True
+            
+        def edit_click_0006():
+            self.remove_labels()
+        
+        def edit_click_0007():
+            options = Options()
+            options.add_argument("-profile")
+            options.add_argument(profile_path)
+            service = FirefoxService(GeckoDriverManager().install())
+            driver = Firefox(service=service, options=options)
+            
+            driver.get("https://toldot.com/netcat/admin/#object.add(369)")
+            
+            actions = ActionChains(driver)
+            actions.move_by_offset(1873, 904).perform()
+            time.sleep(1)
+            actions.click().perform()
+            
+            frame = driver.find_element(By.NAME, "mainViewIframe")
+            driver.switch_to.frame(frame)
+            time.sleep(1)
+
+            summary = driver.find_element(By.NAME, "f_Title_rus")
+            summary.send_keys("Шма 21. Аннулировать мир и аннулировать себя в мысли")
+            summary = driver.find_element(By.NAME, "f_Summary_short")
+            summary.send_keys("Почему Шма говорят перед молитвой?")
+            summary = driver.find_element(By.NAME, "Authstr")
+            summary.send_keys("84")
+            summary = driver.find_element(By.NAME, "Secstr")
+            summary.send_keys("1212")
+            summary = driver.find_element(By.NAME, "Cicle_IDstr")
+            summary.send_keys("874")
+            summary = driver.find_element(By.NAME, "f_File_audio")
+            summary.send_keys("https://media.toldot.com/ZOOM/3202_Zachariya_Matatyahu.mp3")
+            button = driver.find_element_by_xpath('//span[contains(@onclick, "GetTime")][contains(@onclick, "f_File_audio")][contains(@onclick, "audio")][contains(@onclick, "getFileSize")]')
+            button.click()
+
+            
+            # driver.close()
+        
+        main_menu = Menu()
+        
+        file_menu_01 = Menu()
+        file_menu_01.add_command(label="Создать", command=edit_click_0001)
+        file_menu_01.add_command(label="Открыть")
+        file_menu_01.add_command(label="Сохранить как...")
+        file_menu_01.add_command(label="Опубликовать материал", command=edit_click_0007)
+        file_menu_01.add_separator()
+        file_menu_01.add_command(label="Выход", command=edit_click_0002)
+        
+        file_menu_02 = Menu()
+        file_menu_02.add_command(label="База данных", command=edit_click_0003)
+        file_menu_02.add_command(label="Рабочий режим", command=edit_click_0004)
+        file_menu_02.add_command(label="Режим отладки", command=edit_click_0005)
+        
+        file_menu_03 = Menu()
+        file_menu_03.add_command(label="Очистить окно", command=edit_click_0006)
+        
+        main_menu.add_cascade(label="Файл", menu=file_menu_01)
+        main_menu.add_cascade(label="Редактирование", menu=file_menu_03)
+        main_menu.add_cascade(label="Параметры", menu=file_menu_02)
+ 
+        self.config(menu=main_menu)
+        
+        # Предварительные действия        
+        self.run_action_0001()
+        
+    def remove_labels(self):
+        destroy_object = [self.label_0002, self.label_0003, self.label_0004, self.label_0005]
+        for object_name in destroy_object:
+            object_name.destroy()
+        
+    def run_action_0001(self):
+        self.image_0001 = True
+        # Проверить папку Загрузки
+        self.files = os.listdir(path2)
+        for i in self.files:
+            self.file_name = i
+            self.exist = "GMT" in self.file_name
+        if self.exist:
+            self.file = i
+        else:
+            self.file = 'Директория пуста'
+        
+        # Имя файла в директории «Загрузки»
+        self.most2 = r'Имя файла в директории «Загрузки» — ' + self.file
+        self.label_0002 = tk.Label(self, text=self.most2)
+        self.label_0002.place(relx=.05, rely=.05)
+        
+        self.button = tk.Button(self, command=self.start_action_1, text="Проверить файлы на сервере")
+        self.button.place(relx=.708, rely=.05 - .005)
+        
+    def start_action_1(self):
+        self.button.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self.run_action_0002)
+        thread.start()
+        self.check_thread(thread)
+    
+    def start_action_2(self):
+        self.button.config(state=tk.DISABLED)
+        thread = threading.Thread(target=self.run_action_0007)
+        thread.start()
+        self.check_thread(thread)
+
+    def check_thread(self, thread):
+        if thread.is_alive():
+            self.after(100, lambda: self.check_thread(thread))
+        else:
+            self.button.config(state=tk.NORMAL)
+
+    def run_action_0002(self):
+        # Прогрессбар 1
+        self.label_0006 = tk.Label(self, text='Соединение с сервером', foreground="blue")
+        self.label_0006.place(relx=.505, rely=.10)
+        
+        self.progress_bar = ttk.Progressbar(self, length=150, orient="horizontal", mode="determinate", maximum=100, value=0)
+        self.progress_bar.place(relx=.5, rely=.05)
+        self.progress_bar.start()
+        self.progress_bar.step(10)
+        
+        # Соединение с сервером
+        self.host = '176.9.18.7'
+        self.user = 'hliberman'
+        self.secret = '***********'
+        self.port = 38653
+        
+        self.ssh = paramiko.SSHClient()
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.ssh.connect(hostname=self.host, username=self.user, password=self.secret, port=self.port)
+        self.ftp=self.ssh.open_sftp()
+        
+        self.ftp.chdir("/media.toldot.ru/ZOOM/")            # перейти в директорию
+        self.currentDir = self.ftp.getcwd()                 # получить директрию где находишся
+        self.fileList=self.ftp.listdir();                   # выводит и фалы и папки одним общим списком
+        # self.ssh.close()
+        
+        self.fileList.sort()
+        self.x = self.fileList [-1]
+        self.y = self.x[:4]
+        self.z = int(self.y) + 1
+        self.w = str(self.z)
+        self.file2 = self.w + '_источник' + '.mp4'
+        
+        # Имя файла на сервере
+        self.progress_bar.stop()
+        
+        self.label_0006.destroy()
+        self.progress_bar.destroy()
+        
+        self.most1 = r'Имя файла на сервере media.toldot.ru/ZOOM/ — ' + self.x
+        self.label_0003 = tk.Label(self, text=self.most1)
+        self.label_0003.place(relx=.05, rely=.10)
+       
+        # Имя в директории F:\DATA2\Python
+        if self.file != 'Директория пуста':
+            self.most2 = r'Имя файла в директории F:\DATA2\Python — ' + self.file2
+            self.label_0004 = tk.Label(self, text=self.most2)
+            self.label_0004.place(relx=.05, rely=.15)
+            if self.debug_mode:                             # Вхождение 1  
+                shutil.copy(path2 + r'\\' + self.file, path4 + self.file2)  
+            else:
+                shutil.move(path2 + r'\\' + self.file, path4 + self.file2)
+            
+        self.button = tk.Button(self, command=self.run_action_0003, text="Сформирован файл mp3")
+        self.button.place(relx=.708, rely=.15)
+
+    def run_action_0003(self):
+        # Тегирование
+        self.label = tk.Label(self, text="Тегирование")
+        self.label.place(relx=.05, rely=.20)
+        
+        self.imname = path4 + "A001 ZOOM конференция.jpg"
+        self.im1 = Image.open(self.imname)
+        self.size = (300, 300)
+        self.im2 = ImageTk.PhotoImage(Image.open(self.imname).resize(self.size))
+
+        self.button = tk.Button(self, image=self.im2, command=self.run_action_0004, relief = 'flat')
+        self.button.place(relx=.05, rely=.25)
+
+    # Картинка
+    def run_action_0004(self):
+        self.imname= fd.askopenfilename()
+        self.im1 = Image.open(self.imname)
+        self.size = (300, 300)
+        self.im2 = ImageTk.PhotoImage(Image.open(self.imname).resize(self.size))
+        
+        # mp3
+        # self.file2 = '2738_источник.mp4' # Это чтобы не проверять сервер
+        self.file2 = self.file2.replace("mp4", "mp3")
+        
+        # Тег картинка
+        audiofile = eyed3.load(self.file2)
+        audiofile.tag.images.set(3, open(self.imname,'rb').read(), 'image/jpeg')
+        audiofile.tag.save()
+        
+        self.button = tk.Button(self, image=self.im2, command=self.run_action_0004, relief = 'flat')
+        self.button.place(relx=.05, rely=.25)
+        
+        # Если нажали на картинку первый раз
+        if self.image_0001:
+            self.run_action_0005()
+        else:
+            self.run_action_0010()
+            
+    # Поля ввода тегов
+    def run_action_0005(self):
+        self.image_0001 = False
+        self.fields = ["Урок №", "Тема", "Автор", "Цикл", "Жанр", "Год", "Анонс", "Ссылка", "Авторские права", "Издатель", "Name"]
+        self.labels = [tk.Label(self, text=f) for f in self.fields]
+        self.entries = [tk.Entry(self) for _ in self.fields]
+        self.widgets = list(zip(self.labels, self.entries))
+
+        # Заполнение таблицы тегов
+        for i, (label, entry) in enumerate(self.widgets):
+            match i:
+                case 0:
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    entry.place(width = 30, relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 4:
+                    entry.insert(0, tags[0])
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    self.label.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                    self.combobox_01 = ttk.Combobox(height = 20, values=lesson_genre)
+                    self.combobox_01.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 5:
+                    self.today = date.today()
+                    entry.insert(0, self.today.year)
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    self.label = tk.Label(self, text=self.today.year, background = 'Beige')
+                    self.label.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 7:
+                    entry.insert(0, tags[1])
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    self.label = tk.Label(self, text=tags[1], background = 'Beige')
+                    self.label.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 8:
+                    entry.insert(0, tags[2])
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    self.label = tk.Label(self, text=tags[2], background = 'Beige')
+                    self.label.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 9:
+                    entry.insert(0, tags[3])
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    self.label = tk.Label(self, text=tags[3], background = 'Beige')
+                    self.label.place(relx=.70, rely=.25+i*0.05, anchor="ne")
+                case 10:
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    entry.place(width = 120, relx=.70, rely=.25+i*0.05, anchor="ne")
+                case _:
+                    label.place(relx=.708, rely=.25+i*0.05)
+                    entry.place(width = 330, relx=.70, rely=.25+i*0.05, anchor="ne")
+                    
+        self.run_action_0010()
+    
+    def run_action_0010(self):
+        self.button = tk.Button(self, command=self.run_action_0006, text="Записать файл на сервер")
+        self.button.place(relx=.708, rely=.80)
+    
+    def run_action_0006(self):
+        audio_file = MP3(self.file2)
+        
+        for self.label, self.entry in self.widgets:
+            match self.label.cget("text"):
+                case "Урок №":
+                    audio_file["TRCK"] = TRCK(encoding=3, text=self.entry.get())
+                case "Тема":
+                    audio_file["TIT2"] = TIT2(encoding=3, text=self.entry.get())
+                case "Автор":
+                    audio_file["TPE1"] = TPE1(encoding=3, text=self.entry.get())
+                    audio_file["TPE2"] = TPE2(encoding=3, text=self.entry.get())
+                case "Цикл":
+                    audio_file["TALB"] = TALB(encoding=3, text=self.entry.get())
+                case "Жанр":
+                    audio_file["TCON"] = TCON(encoding=3, text=self.combobox_01.get())
+                case "Год":
+                    audio_file["TDRC"] = TDRC(encoding=3, text=date.today().strftime("%Y"))
+                case "Анонс":
+                    audio_file["COMM"] = COMM(encoding=3, desc='', text=self.entry.get())
+                case "Ссылка":
+                    audio_file["WXXX"] = WXXX(encoding=3, url=r"http://toldot.com")
+                case "Авторские права":
+                    audio_file["TCOP"] = TCOP(encoding=3, text="Толдот Йешурун")
+                case "Издатель":
+                    audio_file["TPUB"] = TPUB(encoding=3, text="Toldot Yeshurun, HaKisufim St 17, Jerusalem 9123101, Israel")
+                case "Name":
+                    self.Name = self.entry.get()
+                    
+        audio_file.save()
+        
+        self.x = self.file2[:5]
+        self.file3 = self.x + self.Name + '.mp3'
+        
+        if self.debug_mode:                         # Вхождение 2
+            shutil.copyfile(self.file2, self.file3)
+        else:
+            os.rename(self.file2, self.file3)
+
+        self.start_action_2()
+        
+    def run_action_0007(self):
+        # Прогрессбар 2
+        self.label_0007 = tk.Label(self, text='Запись файла на сервер', foreground="blue")
+        self.label_0007.place(relx=.505, rely=.10)
+        self.progress_bar = ttk.Progressbar(self, length=150, orient="horizontal", mode="determinate", maximum=100, value=0)
+        self.progress_bar.place(relx=.5, rely=.05)
+        self.progress_bar.start()
+        self.progress_bar.step(10)
+        
+        # Этот блок под вопросом
+        self.currentDir = self.ftp.getcwd()                   # получить директрию где находишся
+        # self.fileList=self.ftp.listdir();                   # выводит и фалы и папки одним общим списком
+        self.file4 = r"/media.toldot.ru/ZOOM/" + self.file3
+        
+        self.ftp.put(self.file3, self.file4)
+        self.ssh.close()
+        
+        # self.label = tk.Label(self, text='                                                        ')
+        # self.label.place(relx=.50, rely=.10)
+        self.progress_bar.stop()
+        
+        self.label_0007.destroy()
+        self.progress_bar.destroy()
+        
+        self.file4 = r'https:/' + self.file4
+        # Замена на com
+        self.file4 = self.file4.replace("ru", "com")
+        self.label_0005 = tk.Label(self, text=self.file4, background = 'BlanchedAlmond')
+        self.label_0005.place(relx=.70, rely=.90, anchor="ne")
+        
+        self.button = tk.Button(self, command=self.run_action_0008, text="Копировать ссылку")
+        self.button.place(relx=.708, rely=.90 - .005)
+        
+        self.button = tk.Button(self, command=self.run_action_0009, text="Следующий файл")
+        self.button.place(relx=.84, rely=.90 - .005)
+        
+    def run_action_0009(self):
+        self.remove_labels()
+        # Предварительные действия        
+        self.run_action_0001()
+        # Активация первой кнопки
+        self.button.config(state=tk.NORMAL)
+    
+    def run_action_0008(self):
+        tk = Tk()
+        tk.withdraw()
+        tk.clipboard_clear()
+        tk.clipboard_append(self.file4)
+        tk.update()
+        tk.destroy()
+        
+app = App()
+app.mainloop()
