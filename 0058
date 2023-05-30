@@ -1,0 +1,116 @@
+import os
+import shutil
+import zipfile
+import tkinter as tk
+from tkinter import filedialog
+from tkinter import messagebox
+
+def process_epub_files(epub_folder, css_he_file, css_ru_file):
+    for file_name in os.listdir(epub_folder):
+        file_path = os.path.join(epub_folder, file_name)
+        if os.path.isfile(file_path) and file_name.endswith(".epub"):
+            result = process_epub_file(file_path, css_he_file, css_ru_file)
+            print(f"{file_name}: {result}")
+
+def process_epub_file(epub_file, css_he_file, css_ru_file):
+    try:
+        temp_folder = os.path.splitext(epub_file)[0]
+        os.makedirs(temp_folder, exist_ok=True)
+
+        with zipfile.ZipFile(epub_file, "r") as zip_ref:
+            zip_ref.extractall(temp_folder)
+
+        css_folder_dest = os.path.join(temp_folder, "OEBPS", "Styles")
+        css_file = css_he_file if "_he_" in epub_file else css_ru_file
+        css_file_dest = os.path.join(css_folder_dest, "book.css")
+
+        shutil.copy2(css_file, css_file_dest)
+
+        new_epub_file = os.path.splitext(epub_file)[0] + "_new.epub"
+        with zipfile.ZipFile(new_epub_file, "w") as zip_ref:
+            for folder_name, _, file_names in os.walk(temp_folder):
+                for file in file_names:
+                    file_path = os.path.join(folder_name, file)
+                    arc_name = os.path.relpath(file_path, temp_folder)
+                    zip_ref.write(file_path, arc_name)
+
+        shutil.rmtree(temp_folder)
+        os.remove(epub_file)
+        os.rename(new_epub_file, epub_file)
+
+        return "succeed"
+    except Exception as e:
+        return f"failed, {str(e)}"
+
+def browse_folder():
+    folder_path = filedialog.askdirectory()
+    if folder_path:
+        entry_folder.delete(0, tk.END)
+        entry_folder.insert(tk.END, folder_path)
+
+def browse_css_he_file():
+    file_path = filedialog.askopenfilename(filetypes=(("CSS Files", "*.css"), ("All Files", "*.*")))
+    if file_path:
+        entry_css_he.delete(0, tk.END)
+        entry_css_he.insert(tk.END, file_path)
+
+def browse_css_ru_file():
+    file_path = filedialog.askopenfilename(filetypes=(("CSS Files", "*.css"), ("All Files", "*.*")))
+    if file_path:
+        entry_css_ru.delete(0, tk.END)
+        entry_css_ru.insert(tk.END, file_path)
+
+def process_files():
+    epub_folder = entry_folder.get()
+    css_he_file = entry_css_he.get()
+    css_ru_file = entry_css_ru.get()
+
+    if not os.path.isdir(epub_folder):
+        messagebox.showerror("Error", "Invalid EPUB folder path")
+        return
+
+    if not os.path.isfile(css_he_file):
+        messagebox.showerror("Error", "Invalid CSS file path for Hebrew")
+        return
+
+    if not os.path.isfile(css_ru_file):
+        messagebox.showerror("Error", "Invalid CSS file path for Russian")
+        return
+
+    process_epub_files(epub_folder, css_he_file, css_ru_file)
+    messagebox.showinfo("Complete", "EPUB files processed successfully")
+
+# Create the main window
+window = tk.Tk()
+window.title("EPUB Processor")
+
+# Create and configure the EPUB folder entry
+label_folder = tk.Label(window, text="EPUB Folder:")
+label_folder.grid(row=0, column=0, sticky=tk.W, padx=10, pady=5)
+entry_folder = tk.Entry(window)
+entry_folder.grid(row=0, column=1, padx=10, pady=5)
+button_folder = tk.Button(window, text="Browse", command=browse_folder)
+button_folder.grid(row=0, column=2, padx=10, pady=5)
+
+# Create and configure the CSS file for Hebrew entry
+label_css_he = tk.Label(window, text="CSS File (Hebrew):")
+label_css_he.grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+entry_css_he = tk.Entry(window)
+entry_css_he.grid(row=1, column=1, padx=10, pady=5)
+button_css_he = tk.Button(window, text="Browse", command=browse_css_he_file)
+button_css_he.grid(row=1, column=2, padx=10, pady=5)
+
+# Create and configure the CSS file for Russian entry
+label_css_ru = tk.Label(window, text="CSS File (Russian):")
+label_css_ru.grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+entry_css_ru = tk.Entry(window)
+entry_css_ru.grid(row=2, column=1, padx=10, pady=5)
+button_css_ru = tk.Button(window, text="Browse", command=browse_css_ru_file)
+button_css_ru.grid(row=2, column=2, padx=10, pady=5)
+
+# Create and configure the process button
+button_process = tk.Button(window, text="Process Files", command=process_files)
+button_process.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
+
+# Start the main loop
+window.mainloop()
