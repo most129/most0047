@@ -1,0 +1,151 @@
+import os
+import shutil
+import zipfile
+import tkinter as tk
+import math
+from tkinter import filedialog
+from tkinter import messagebox
+from tkinter.scrolledtext import ScrolledText
+
+
+def process_epub_files(epub_folder, css_he_file, css_ru_file, text_output):
+    for file_name in os.listdir(epub_folder):
+        file_path = os.path.join(epub_folder, file_name)
+        if os.path.isfile(file_path) and file_name.endswith(".epub"):
+            result = process_epub_file(file_path, css_he_file, css_ru_file)
+            text_output.insert(tk.END, f"{file_name}: {result}\n")
+            text_output.see(tk.END)
+
+
+def process_epub_file(epub_file, css_he_file, css_ru_file):
+    try:
+        temp_folder = os.path.splitext(epub_file)[0]
+        os.makedirs(temp_folder, exist_ok=True)
+
+        with zipfile.ZipFile(epub_file, "r") as zip_ref:
+            zip_ref.extractall(temp_folder)
+
+        css_folder_dest = os.path.join(temp_folder, "OEBPS", "Styles")
+        css_file = css_he_file if "_he_" in epub_file else css_ru_file
+
+        for file_name in os.listdir(css_folder_dest):
+            if file_name.startswith("book") and file_name.endswith(".css"):
+                css_file_dest = os.path.join(css_folder_dest, file_name)
+                shutil.copy2(css_file, css_file_dest)
+
+        new_epub_file = os.path.splitext(epub_file)[0] + "_new.epub"
+        with zipfile.ZipFile(new_epub_file, "w") as zip_ref:
+            for folder_name, _, file_names in os.walk(temp_folder):
+                for file in file_names:
+                    file_path = os.path.join(folder_name, file)
+                    arc_name = os.path.relpath(file_path, temp_folder)
+                    zip_ref.write(file_path, arc_name)
+
+        shutil.rmtree(temp_folder)
+        os.remove(epub_file)
+        os.rename(new_epub_file, epub_file)
+
+        return "успешно"
+    except Exception as e:
+        return f"ошибка, {str(e)}"
+
+
+def browse_folder():
+    folder_path = filedialog.askdirectory()
+    if folder_path:
+        entry_folder.delete(0, tk.END)
+        entry_folder.insert(tk.END, folder_path)
+
+
+def browse_css_he_file():
+    file_path = filedialog.askopenfilename(filetypes=(("CSS файлы", "*.css"), ("Все файлы", "*.*")))
+    if file_path:
+        entry_css_he.delete(0, tk.END)
+        entry_css_he.insert(tk.END, file_path)
+
+
+def browse_css_ru_file():
+    file_path = filedialog.askopenfilename(filetypes=(("CSS файлы", "*.css"), ("Все файлы", "*.*")))
+    if file_path:
+        entry_css_ru.delete(0, tk.END)
+        entry_css_ru.insert(tk.END, file_path)
+
+
+def process_files():
+    epub_folder = entry_folder.get()
+    css_he_file = entry_css_he.get()
+    css_ru_file = entry_css_ru.get()
+
+    if not os.path.isdir(epub_folder):
+        text_output.insert(tk.END, "Ошибка: Неверный путь к папке с EPUB-файлами\n")
+        text_output.see(tk.END)
+        return
+
+    if not os.path.isfile(css_he_file):
+        text_output.insert(tk.END, "Ошибка: Неверный путь к CSS-файлу для иврита\n")
+        text_output.see(tk.END)
+        return
+
+    if not os.path.isfile(css_ru_file):
+        text_output.insert(tk.END, "Ошибка: Неверный путь к CSS-файлу для русского\n")
+        text_output.see(tk.END)
+        return
+
+    process_epub_files(epub_folder, css_he_file, css_ru_file, text_output)
+    text_output.insert(tk.END, "Обработка EPUB-файлов завершена успешно\n")
+    text_output.see(tk.END)
+
+
+# Создаем главное окно
+window = tk.Tk()
+window.title("Замена файла стилей CSS в EPUB файлах мобильного сидура")
+window.wm_iconbitmap("3755219.ico")
+
+# Получаем размеры экрана
+screen_width = window.winfo_screenwidth()
+screen_height = window.winfo_screenheight()
+
+# Устанавливаем положение окна по центру экрана + 200
+window_width = 700
+window_height = 400
+x = math.floor((screen_width - window_width) / 2) + 200
+y = math.floor((screen_height - window_height) / 2)
+window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+# Создаем и настраиваем поле вывода сообщений
+text_output = ScrolledText(window, state="disabled", height=10)
+text_output.grid(row=0, column=0, columnspan=3, padx=10, pady=10)
+text_output.configure(state="normal")  # Активируем поле вывода текста
+
+# Создаем и настраиваем поле выбора папки с EPUB-файлами
+label_folder = tk.Label(window, text="Папка с EPUB-файлами:")
+label_folder.grid(row=1, column=0, sticky=tk.W, padx=10, pady=5)
+entry_folder = tk.Entry(window, width=50)
+entry_folder.grid(row=1, column=1, sticky=tk.W, padx=10, pady=5)
+button_folder = tk.Button(window, text="Обзор", command=browse_folder)
+button_folder.grid(row=1, column=2, padx=10, pady=5)
+# Сдвигаем окно ввода влево
+window.grid_columnconfigure(1, weight=0)  # Устанавливаем вес 0 для столбца с полем ввода
+
+# Создаем и настраиваем поле выбора CSS-файла для иврита
+label_css_he = tk.Label(window, text="CSS-файл для иврита:")
+label_css_he.grid(row=2, column=0, sticky=tk.W, padx=10, pady=5)
+entry_css_he = tk.Entry(window, width=50)
+entry_css_he.grid(row=2, column=1, sticky=tk.W, padx=10, pady=5)
+button_css_he = tk.Button(window, text="Обзор", command=browse_css_he_file)
+button_css_he.grid(row=2, column=2, padx=10, pady=5)
+
+# Создаем и настраиваем поле выбора CSS-файла для русского
+label_css_ru = tk.Label(window, text="CSS-файл для русского:")
+label_css_ru.grid(row=3, column=0, sticky=tk.W, padx=10, pady=5)
+entry_css_ru = tk.Entry(window, width=50)
+entry_css_ru.grid(row=3, column=1, sticky=tk.W, padx=10, pady=5)
+button_css_ru = tk.Button(window, text="Обзор", command=browse_css_ru_file)
+button_css_ru.grid(row=3, column=2, padx=10, pady=5)
+
+# Создаем и настраиваем кнопку обработки файлов
+button_process = tk.Button(window, text="Обработать файлы", command=process_files)
+button_process.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+
+# Запускаем основной цикл программы
+window.mainloop()
